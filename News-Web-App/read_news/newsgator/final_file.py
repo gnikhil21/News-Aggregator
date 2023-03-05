@@ -27,16 +27,16 @@ def get_synonym_list(input_keywords):
         soup = BeautifulSoup(r.content, "html.parser")
         a = soup.find_all('a',{"class" : ["css-1kg1yv8 eh475bn0", "css-1n6g4vv eh475bn0"]})
         synonyms = [word.text for word in a]
-        # synonyms.append(keyword)
         synonym_dict[keyword] = synonyms
         
     return synonym_dict
+
+
 
 def get_from_newsapi(keywords, limit):
     headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 6.3; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/54.0.2840.71 Safari/537.36'}
     urls = []
 
-    # for keyword in keywords:
     word = "+".join(keywords)
     api_key = 'ecb1cd4140d14834b4ec6368c98676fc'
     url = f'https://newsapi.org/v2/everything?q={word}&apiKey={api_key}'
@@ -50,8 +50,9 @@ def get_from_newsapi(keywords, limit):
         link_count += 1
         if link_count > limit:
             break
-    # print(news["title"], news["link"])
     return urls
+
+
 
 def get_from_newscatcher(keywords, limit):
     headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 6.3; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/54.0.2840.71 Safari/537.36'}
@@ -71,8 +72,9 @@ def get_from_newscatcher(keywords, limit):
         link_count += 1
         if link_count > limit:
             break
-    # print(news["title"], news["link"])
+    
     return urls
+
 
 # returns list of dictionaries
 def get_from_youtube(keywords, limit): 
@@ -100,14 +102,15 @@ def get_from_youtube(keywords, limit):
                         "text" : item["snippet"]["description"],
                         "link" : item["id"]["videoId"]
                         })
-        # content.append(item["id"]["videoId"])
+        
     return content
+
+
 
 def get_from_googlenews(keywords, limit):
     headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 6.3; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/54.0.2840.71 Safari/537.36'}
     urls = []
-
-    # for keyword in keywords:
+    
     word = "+".join(keywords)
     url = 'https://news.google.com/rss/search?q='+ word +'&hl=en-US&gl=US&ceid=US:en' # crawl through google news   
     r = requests.get(url, headers=headers)
@@ -115,15 +118,18 @@ def get_from_googlenews(keywords, limit):
     dict_data = xmltodict.parse(xml_data)
     json_data = json.dumps(dict_data)
     json_obj = json.loads(json_data)
-    # rj = r.json()
     link_count = 0
+    
     for news in json_obj["rss"]["channel"]["item"]:
         urls.append(news["link"])
         link_count += 1
+        
         if link_count > limit:
             break
-    # print(news["title"], news["link"])
+    
     return urls
+
+
 
 def get_urls(keywords):
     limit = 5
@@ -135,9 +141,6 @@ def get_urls(keywords):
     
     urls.extend(from_newsapi)
     urls.extend(from_newscatcher)
-    # urls.extend(from_youtube)
-    # urls.extend()
-    # print(news["title"], news["link"])
     return urls
 
 def get_text(urls):  
@@ -147,35 +150,21 @@ def get_text(urls):
     
     for url in urls:
         # Extract web data
-        # config = newspaper.Config()
-        # config.browser_user_agent = random.choice(user_agent)
         try:
             url_i = newspaper.Article(url="%s" % (url), language='en', user_agent=user_agent)
             url_i.download()
             url_i.parse()
-            # print(url_i)
             text.append({'title': url_i.title,
                          'text': url_i.text,
                          'link' : url})
         except Exception as e:
-            print(e)
-        # Display scrapped data
-        # print(len(url_i.text))
+            continue
         
     return text
 
 
 def removePunctuations(news_list):
-    # if len(news_list) == 1:
-    #     news_text = news_list['text']
-    #     news_list['text'] = re.sub(r'[^\w\s]', '', news_text)
-    #     news_title = news_list['title']
-    #     news_list['title'] = re.sub(r'[^\w\s]', '', news_title)
-    #     news_list = [news_list]
-    # print("len=",len(news_list))
     for i in range(len(news_list)):
-        # print(i)
-        # print(news_list[1])
         news_text = news_list[i]['text']
         news_list[i]['text'] = re.sub(r'[^\w\s]', '', news_text)
         news_title = news_list[i]['title']
@@ -193,25 +182,25 @@ def getScore(words, priority_score, threshold, priority, keywords_dict, keywords
 
     for i in range(len(words)):
         for j in range(len(keywords_dict)):
-            # keyword = list(keywords_dict.keys())[j]
-            # lis = [keyword]+keywords_dict[keyword]
             for synonym in keywords_list[j]:
-                #print(keywords_list)
                 if len(synonym.split(' ')) < 2:
                     if words[i].lower() == synonym.lower():
                         frequency_map[keywords_list[j][0]] = min(threshold, frequency_map[keywords_list[j][0]] + 1)
                 else:
                     l = 0
                     index = i
+                    
                     while(i < len(words) and l < len(synonym.split(' ')) and words[i].lower() == synonym.split(' ')[l].lower()):
                         i += 1
                         l += 1
+                        
                     if(l == len(synonym.split(' '))):
                         frequency_map[keywords_list[j][0]] = min(threshold, frequency_map[keywords_list[j][0]] + 1)
                     else:
                         i = index 
     
     index = 0
+    
     for val in frequency_map.values():
         score += priority[index]*val
         index += 1
@@ -219,18 +208,15 @@ def getScore(words, priority_score, threshold, priority, keywords_dict, keywords
 
     return score
 
-def sort_list(list1, list2):
- 
-    zipped_pairs = zip(list2, list1)
- 
-    z = [x for _, x in sorted(zipped_pairs, key = lambda x : x[0],reverse=True)]
-    # from collections import OrderedDict
 
-    # sorted_dict = OrderedDict([(el, list1[el]) for el in list2])
-    
+
+def sort_list(list1, list2):
+    zipped_pairs = zip(list2, list1)
+    z = [x for _, x in sorted(zipped_pairs, key = lambda x : x[0],reverse=True)]
     return z
 
-# Assign url
+
+
 def main(input_keywords):
     
     heading_priority = 10
@@ -239,13 +225,12 @@ def main(input_keywords):
     news_scores = []
     threshold = 10
     
-    # input_keywords = ['theft', 'atm']
     urls = get_urls(input_keywords)
     print("urls extracted")
+    
     from_youtube = get_from_youtube(input_keywords, 2)
     articles = get_text(urls)
     articles.extend(from_youtube)
-    print(articles)
     print("text extracted")
 
     news_list = articles
@@ -253,12 +238,6 @@ def main(input_keywords):
     keywords_dict = get_synonym_list(input_keywords)
     priority = list(np.arange(len(keywords_dict))[::-1]+1)
     print("synonyms extracted")
-    # keywords_dict = {
-    #     'atm': ['any time money', 'automatic teller machine'],
-    #     'Machine Learning' : ['ml', 'ai'],
-    #     'theft': ['robbery', 'steal', 'larceny'],
-    #     'party': ['political', 'bjp', 'congress']
-    # }  
 
     for j in range(len(keywords_dict)):
         keyword = list(keywords_dict.keys())[j]
@@ -270,10 +249,6 @@ def main(input_keywords):
         score += getScore(news['title'].split(' '), heading_priority, threshold, priority, keywords_dict, keywords_list)   
         news_scores.append(score)
 
-    index = news_scores.index(max(news_scores))
     news_list = sort_list(news_list, news_scores)
-    # print(news_scores)
-    print('final')
-    print(news_list[index])
     
     return news_list
