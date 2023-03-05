@@ -158,7 +158,7 @@ def main(input_keywords):
     news_scores = []
     threshold = 10
     
-    input_keywords = ['theft', 'atm']
+    # input_keywords = ['theft', 'atm']
     urls = get_urls(input_keywords)
     print("urls exctracted")
     articles = get_text(urls)
