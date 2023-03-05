@@ -43,9 +43,9 @@
                 <div class="row">
                         <div class="card-body text-center">
                             
-                            <h5 class="card-title">
+                            <h4 class="card-title">
                                 <a href="{{main.url}}" target="_blanck">{{main.title}}</a>    
-                            </h5> 
+                            </h4> 
                             <p class="card-text">{{main.des}}</p>
                             
                         </div>
@@ -53,25 +53,29 @@
             </div>
         </div>
             
-        <div class="container text-center" id="articles-more">
+        <div class="container text-centers col-6" id="articles-more">
 
-            {% for i in others %}
             <div class="card mb-3 box mx-auto">
                 <div class="row">
+                    <div class="">
                         <div class="card-body text-center">
-                            
-                            <h5 class="card-title">
+                            <ul>
+            {% for i in others %}
+            <li>
+                            <h6 class="card-title">
                                 <a href="{{i.url}}" target="_blanck">{{i.title}}</a>    
-                            </h5> 
-                            <p class="card-text">{{i.des}}</p>
+                            </h6> 
+                        </li>
                             
+            {% endfor %}
+                        </ul>
                         </div>
                 </div>
             </div>
-            {% endfor %}
+            </div>
         </div>
         <div class = "text-center">
-            <button onclick="myFunction()" class="btn btn-primary" value = 0 id = "getmore">Read more</button>
+            <button onclick="myFunction()" class="btn btn-primary" value = 0 id = "getmore">Other Relavent Links</button>
         </div>
     </div>
 
@@ -82,11 +86,11 @@
         var btnText = document.getElementById("getmore");
 
         if (btnText.value == '1') {
-            btnText.innerHTML = "Read more"; 
+            btnText.innerHTML = "Other Relavent Links"; 
             moreText.style.display = "none";
             btnText.value = '0'
         } else {
-            btnText.innerHTML = "Read less"; 
+            btnText.innerHTML = "Hide Other Links"; 
             moreText.style.display = "block";
             btnText.value = '1'
         }
