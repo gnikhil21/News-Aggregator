@@ -74,7 +74,8 @@ def get_from_newscatcher(keywords, limit):
     # print(news["title"], news["link"])
     return urls
 
-def get_from_youtube(keywords, limit):
+# returns list of dictionaries
+def get_from_youtube(keywords, limit): 
     content = []
     api_service_name = "youtube"
     api_version = "v3"
@@ -95,11 +96,11 @@ def get_from_youtube(keywords, limit):
     response = request.execute()
     
     for item in response["items"]:
-        # content.append({"title" : item["snippet"]["title"],
-        #                 "text" : item["snippet"]["description"],
-        #                 "link" : item["id"]["videoId"]
-        #                 })
-        content.append(item["id"]["videoId"])
+        content.append({"title" : item["snippet"]["title"],
+                        "text" : item["snippet"]["description"],
+                        "link" : item["id"]["videoId"]
+                        })
+        # content.append(item["id"]["videoId"])
     return content
 
 def get_from_googlenews(keywords, limit):
@@ -130,12 +131,11 @@ def get_urls(keywords):
     
     from_newsapi = get_from_newsapi(keywords, limit)
     from_newscatcher = get_from_newscatcher(keywords, limit)
-    from_youtube = get_from_youtube(keywords, limit)
     urls = get_from_googlenews(keywords, limit)
     
     urls.extend(from_newsapi)
     urls.extend(from_newscatcher)
-    urls.extend(from_youtube)
+    # urls.extend(from_youtube)
     # urls.extend()
     # print(news["title"], news["link"])
     return urls
@@ -241,16 +241,18 @@ def main(input_keywords):
     
     # input_keywords = ['theft', 'atm']
     urls = get_urls(input_keywords)
-    print("urls exctracted")
+    print("urls extracted")
+    from_youtube = get_from_youtube(input_keywords, 2)
     articles = get_text(urls)
+    articles.extend(from_youtube)
     print(articles)
-    print("text exctracted")
+    print("text extracted")
 
     news_list = articles
     news_list = removePunctuations(news_list)
     keywords_dict = get_synonym_list(input_keywords)
     priority = list(np.arange(len(keywords_dict))[::-1]+1)
-    print("synonyms exctracted")
+    print("synonyms extracted")
     # keywords_dict = {
     #     'atm': ['any time money', 'automatic teller machine'],
     #     'Machine Learning' : ['ml', 'ai'],
