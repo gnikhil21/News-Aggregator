@@ -3,6 +3,7 @@ from newsapi import NewsApiClient
 from GoogleNews import GoogleNews
 from django.http import HttpResponse
 from news import settings
+from .newsgator import final_file
 
 def home(request):
     
@@ -20,6 +21,9 @@ def home(request):
             i = i+1
             
         print(keywords)
+        
+        ## call actual function
+        final_file.main(keywords)
 
         googlenews = GoogleNews(lang='en', period='1d')
 
