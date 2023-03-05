@@ -75,7 +75,7 @@ def get_from_newscatcher(keywords, limit):
     return urls
 
 def get_from_youtube(keywords, limit):
-    # content = []
+    content = []
     api_service_name = "youtube"
     api_version = "v3"
     DEVELOPER_KEY = "AIzaSyA8UsMP3jlXBKylUsyfN4DAqH7ByG_mZes"
@@ -94,9 +94,13 @@ def get_from_youtube(keywords, limit):
         )
     response = request.execute()
     
-    # for item in response["items"]:
-    #     content
-    return response["items"]
+    for item in response["items"]:
+        # content.append({"title" : item["snippet"]["title"],
+        #                 "text" : item["snippet"]["description"],
+        #                 "link" : item["id"]["videoId"]
+        #                 })
+        content.append(item["id"]["videoId"])
+    return content
 
 def get_from_googlenews(keywords, limit):
     headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 6.3; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/54.0.2840.71 Safari/537.36'}
@@ -126,10 +130,13 @@ def get_urls(keywords):
     
     from_newsapi = get_from_newsapi(keywords, limit)
     from_newscatcher = get_from_newscatcher(keywords, limit)
+    from_youtube = get_from_youtube(keywords, limit)
     urls = get_from_googlenews(keywords, limit)
     
     urls.extend(from_newsapi)
     urls.extend(from_newscatcher)
+    urls.extend(from_youtube)
+    # urls.extend()
     # print(news["title"], news["link"])
     return urls
 
