@@ -69,12 +69,13 @@ def get_text(urls):
         config = newspaper.Config()
         config.browser_user_agent = random.choice(user_agent)
         try:
-            url_i = newspaper.Article(url="%s" % (url), language='en', config=config)
+            url_i = newspaper.Article(url="%s" % (url), language='en', user_agent=user_agent)
             url_i.download()
             url_i.parse()
             # print(url_i)
             text.append({'title': url_i.title,
-                         'text': url_i.text})
+                         'text': url_i.text,
+                         'link' : url})
         except Exception as e:
             print(e)
         # Display scrapped data
@@ -103,7 +104,7 @@ def removePunctuations(news_list):
 
 
 
-def getScore(words, priority_score, threshold, priority):
+def getScore(words, priority_score, threshold, priority, keywords_dict, keywords_list):
     score = 0
     frequency_map = {}
     for keyword in keywords_dict:
@@ -130,21 +131,29 @@ def getScore(words, priority_score, threshold, priority):
                         i = index 
     
     index = 0
-    for val in frequency_map.values:
+    for val in frequency_map.values():
         score += priority[index]*val
         index += 1
     score += priority_score*sum(list(frequency_map.values()))
 
     return score
 
+def sort_list(list1, list2):
+ 
+    zipped_pairs = zip(list2, list1)
+ 
+    z = [x for _, x in sorted(zipped_pairs, key = lambda x : x[0],reverse=True)]
+    # from collections import OrderedDict
+
+    # sorted_dict = OrderedDict([(el, list1[el]) for el in list2])
+    
+    return z
 
 # Assign url
 def main(input_keywords):
     
     heading_priority = 10
     content_priority = 8
-    priority = list(np.arange(len(keywords_dict))[::-1]+1)
-
     keywords_list = []
     news_scores = []
     threshold = 10
@@ -159,6 +168,7 @@ def main(input_keywords):
     news_list = articles
     news_list = removePunctuations(news_list)
     keywords_dict = get_synonym_list(input_keywords)
+    priority = list(np.arange(len(keywords_dict))[::-1]+1)
     print("synonyms exctracted")
     # keywords_dict = {
     #     'atm': ['any time money', 'automatic teller machine'],
@@ -173,13 +183,14 @@ def main(input_keywords):
         
     for news in news_list:
         score = 0
-        score += getScore(news['text'].split(' '), content_priority, threshold, priority)
-        score += getScore(news['title'].split(' '), heading_priority, threshold, priority)   
+        score += getScore(news['text'].split(' '), content_priority, threshold, priority, keywords_dict, keywords_list)
+        score += getScore(news['title'].split(' '), heading_priority, threshold, priority, keywords_dict, keywords_list)   
         news_scores.append(score)
 
     index = news_scores.index(max(news_scores))
+    news_list = sort_list(news_list, news_scores)
     # print(news_scores)
     print('final')
     print(news_list[index])
     
-    return news_list[index]
+    return news_list
