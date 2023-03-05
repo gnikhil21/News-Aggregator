@@ -10,6 +10,10 @@ import newspaper
 import random
 import requests
 from bs4 import BeautifulSoup
+import newscatcherapi
+from newscatcherapi import NewsCatcherApiClient
+from googleapiclient.discovery import build
+import google.auth.credentials
 
 
 def get_synonym_list(input_keywords):
@@ -28,10 +32,75 @@ def get_synonym_list(input_keywords):
         
     return synonym_dict
 
-def get_urls(keywords):
+def get_from_newsapi(keywords, limit):
     headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 6.3; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/54.0.2840.71 Safari/537.36'}
     urls = []
-    news_count_limit = 10
+
+    # for keyword in keywords:
+    word = "+".join(keywords)
+    api_key = 'ecb1cd4140d14834b4ec6368c98676fc'
+    url = f'https://newsapi.org/v2/everything?q={word}&apiKey={api_key}'
+    
+    response = requests.get(url, verify=False)
+    json_obj = response.json()
+   
+    link_count = 0
+    for news in json_obj["articles"]:
+        urls.append(news["url"])
+        link_count += 1
+        if link_count > limit:
+            break
+    # print(news["title"], news["link"])
+    return urls
+
+def get_from_newscatcher(keywords, limit):
+    headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 6.3; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/54.0.2840.71 Safari/537.36'}
+    urls = []
+
+    word = " ".join(keywords)
+    newscatcherapi = NewsCatcherApiClient(x_api_key='6shsM896iLiAGZBQoB5kCT9lf-M74S1kID6cSg7geXc')
+    
+    json_obj = newscatcherapi.get_search(q=word,
+                                         lang='en',
+                                         countries='CA',
+                                         page_size=100)
+    
+    link_count = 0
+    for news in json_obj["articles"]:
+        urls.append(news["link"])
+        link_count += 1
+        if link_count > limit:
+            break
+    # print(news["title"], news["link"])
+    return urls
+
+def get_from_youtube(keywords, limit):
+    # content = []
+    api_service_name = "youtube"
+    api_version = "v3"
+    DEVELOPER_KEY = "AIzaSyA8UsMP3jlXBKylUsyfN4DAqH7ByG_mZes"
+
+    youtube = build(api_service_name, api_version, developerKey = DEVELOPER_KEY)
+    
+    query = "+".join(keywords)
+    order = "viewCount"
+
+    request = youtube.search().list(
+            part = "id,snippet",
+            type = "video",
+            q = query,
+            maxResults = limit,
+            order = order,
+        )
+    response = request.execute()
+    
+    # for item in response["items"]:
+    #     content
+    return response["items"]
+
+def get_from_googlenews(keywords, limit):
+    headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 6.3; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/54.0.2840.71 Safari/537.36'}
+    urls = []
 
     # for keyword in keywords:
     word = "+".join(keywords)
@@ -46,28 +115,33 @@ def get_urls(keywords):
     for news in json_obj["rss"]["channel"]["item"]:
         urls.append(news["link"])
         link_count += 1
-        if link_count > news_count_limit:
+        if link_count > limit:
             break
+    # print(news["title"], news["link"])
+    return urls
+
+def get_urls(keywords):
+    limit = 5
+    urls = []
+    
+    from_newsapi = get_from_newsapi(keywords, limit)
+    from_newscatcher = get_from_newscatcher(keywords, limit)
+    urls = get_from_googlenews(keywords, limit)
+    
+    urls.extend(from_newsapi)
+    urls.extend(from_newscatcher)
     # print(news["title"], news["link"])
     return urls
 
 def get_text(urls):  
     text = []
-    user_agents = [
-    'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/89.0.4389.82 Safari/537.36',
-    'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/88.0.4324.96 Safari/537.36',
-    'Mozilla/5.0 (iPhone; CPU iPhone OS 14_4_2 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/14.0.3 Mobile/15E148 Safari/604.1',
-    'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Edge/89.0.774.45 Safari/537.36 Edg/89.0.774.45',
-    'Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:86.0) Gecko/20100101 Firefox/86.0'
-]
-
-    user_agent = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:78.0) Gecko/20100101 Firefox/78.0'
+    user_agent = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.36'
     
     
     for url in urls:
         # Extract web data
-        config = newspaper.Config()
-        config.browser_user_agent = random.choice(user_agent)
+        # config = newspaper.Config()
+        # config.browser_user_agent = random.choice(user_agent)
         try:
             url_i = newspaper.Article(url="%s" % (url), language='en', user_agent=user_agent)
             url_i.download()
