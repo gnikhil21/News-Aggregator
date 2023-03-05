@@ -67,11 +67,14 @@ def get_from_newscatcher(keywords, limit):
                                          page_size=100)
     
     link_count = 0
-    for news in json_obj["articles"]:
-        urls.append(news["link"])
-        link_count += 1
-        if link_count > limit:
-            break
+    try:
+        for news in json_obj["articles"]:
+            urls.append(news["link"])
+            link_count += 1
+            if link_count > limit:
+                break
+    except:
+        return urls
     
     return urls
 
@@ -141,6 +144,7 @@ def get_urls(keywords):
     
     urls.extend(from_newsapi)
     urls.extend(from_newscatcher)
+    urls = list(set(urls))
     return urls
 
 def get_text(urls):  
