@@ -32,11 +32,7 @@ def home(request):
         page={"others" : [],
               "keywords" : request.POST['keywords']}
         
-        print('!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!')
-        print(result)
-        for i in result[:2]:
-            print("@")
-            print(i)
+        for i in result:
             page["others"].append({
                 "title": i['title'],
                 "des"  : i['text'],
