@@ -22,13 +22,8 @@ def home(request):
             
         print(keywords)
         
-        ## call actual function
+        
         result = final_file.main(keywords)
-
-        # googlenews = GoogleNews(lang='en', period='1d')
-
-        # googlenews.search(keywords[0])
-        # #results = googlenews.results(sort=True)
         page={"others" : [],
               "keywords" : request.POST['keywords']}
         
@@ -40,5 +35,6 @@ def home(request):
             })
 
         page["main"] = page["others"][0]
+        page["others"].pop(0)
         return render(request,'index.html',page)
 
